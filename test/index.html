@@ -58,6 +58,7 @@
     }
     @media (max-width:440px){h1{font-size:3.1rem}.intro{min-height:0}.kicker{font-size:.73rem}.controls{flex-wrap:wrap}.btn.primary{width:100%;order:-1}.choose{text-align:left}}
     @media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
+    .voice-speeds{display:flex;align-items:center;gap:8px;margin:-12px 0 28px;font-size:.9rem}.voice-speed{border:1px solid var(--olive);background:transparent;color:var(--olive);padding:7px 12px;cursor:pointer}.voice-speed.active{background:var(--olive);color:var(--white)}
     [hidden]{display:none!important} #mapFrame{display:block;width:100%;height:100vh;border:0;background:#f3edda}
   </style>
 </head>
@@ -95,6 +96,16 @@
       {title:'ЛОЖЬ ЗАСЛУЖЕННОЙ ЦЕННОСТИ',core:'«Чтобы иметь право на любовь, признание и своё место, я должна доказать свою ценность».',trap:'собственную ценность со своими достижениями',body:['Вам кажется, что ещё один результат, ещё одна цель, ещё немного денег, красоты, признания или одобрения — и тогда наконец появится ощущение:','<strong>«Теперь я достаточно хорошая».</strong>','Но это «достаточно» всё время отодвигается.','То, чем вчера вы бы гордились, сегодня уже кажется обычным. Ошибка быстро превращается не в «я ошиблась», а в <strong>«со мной что-то не так»</strong>. А чужое недовольство может моментально включить желание снова что-то в себе исправить.','И в какой-то момент вы можете обнаружить, что <strong>всю жизнь сдаёте экзамен, у которого вообще нет выпускного.</strong>']},
       {title:'ЛОЖЬ САМОСТОЯТЕЛЬНОСТИ',core:'«Чтобы не зависеть, не разочароваться и не потерять, я должна справляться сама»',trap:'самостоятельность с защищённостью',body:['Вам кажется, что если ни от кого не зависеть, ничего не просить и всегда иметь запасной план — никто не сможет вас подвести, бросить или сделать больно.','Поэтому вы можете терпеть до последнего, не показывать, что вам тяжело, самой решать свои проблемы и ждать, что близкие как-то сами догадаются, что вам нужна помощь.','А потом внутри появляется знакомое:','<strong>«Ну конечно. Как всегда, всё на мне».</strong>','И в какой-то момент вы можете обнаружить, что <strong>умеете справляться со всем — кроме одного: позволить кому-то действительно быть рядом и поддержать вас.</strong>']}
     ];
+    let voiceSpeed=1.2;
+    function applyVoiceSpeed(){
+      const audio=document.querySelector('audio');
+      if(audio){audio.playbackRate=voiceSpeed;audio.defaultPlaybackRate=voiceSpeed;audio.preservesPitch=true}
+      document.querySelectorAll('[data-voice-speed]').forEach(button=>{
+        const active=Number(button.dataset.voiceSpeed)===voiceSpeed;
+        button.setAttribute('aria-pressed',String(active));button.classList.toggle('active',active)
+      });
+    }
+    function setVoiceSpeed(speed){if(![1,1.2,1.5].includes(speed))return;voiceSpeed=speed;applyVoiceSpeed()}
     const letters=['А','Б','В','Г'];
     const storageKey='anna-funnel-v1';
     let stored={};try{stored=JSON.parse(localStorage.getItem(storageKey)||'{}')||{}}catch{}
@@ -119,12 +130,13 @@
       let inner='';
       if(state.complete){
         const p=profiles[resultIndex()];
-        inner=`<article class="result"><h2>Итак, ваш результат — ${p.title} 🔒</h2><p class="eyebrow">Код результата: <strong>ПС-${resultIndex()+1}</strong></p><p class="eyebrow">Ваш главный пиздёж себе:</p><p class="core"><strong>${p.core}</strong></p><p class="trap">Главная ловушка:</p><div class="copy"><p>Вы можете путать <strong>${p.trap}</strong>.</p>${p.body.map(x=>`<p>${x}</p>`).join('')}<section aria-label="Голосовая расшифровка"><p><strong>Полная голосовая расшифровка вашей иллюзии</strong></p><audio controls preload="none" style="width:100%;margin-bottom:24px" src="audio/ps-${resultIndex()+1}.mp3">Ваш браузер не поддерживает аудио. <a href="audio/ps-${resultIndex()+1}.mp3">Скачать голосовую расшифровку</a></audio></section><p>Следующий шаг — <strong>карта принятых решений</strong>. Отметьте от 6 до 10 решений, которыми вы действительно руководствуетесь.</p><p>Сайт покажет возможную травму и то, каким способом ваша иллюзия может её обслуживать.</p></div><button class="telegram" style="border:0;cursor:pointer" type="button" onclick="openMap()">Перейти к карте принятых решений <span>→</span></button><button class="retry" type="button" onclick="restart()">Пройти тест заново</button></article>`;
+        inner=`<article class="result"><h2>Итак, ваш результат — ${p.title} 🔒</h2><p class="eyebrow">Код результата: <strong>ПС-${resultIndex()+1}</strong></p><p class="eyebrow">Ваш главный пиздёж себе:</p><p class="core"><strong>${p.core}</strong></p><p class="trap">Главная ловушка:</p><div class="copy"><p>Вы можете путать <strong>${p.trap}</strong>.</p>${p.body.map(x=>`<p>${x}</p>`).join('')}<section aria-label="Голосовая расшифровка"><p><strong>Полная голосовая расшифровка вашей иллюзии</strong></p><audio controls preload="none" style="width:100%;margin-bottom:24px" src="audio/ps-${resultIndex()+1}.mp3">Ваш браузер не поддерживает аудио. <a href="audio/ps-${resultIndex()+1}.mp3">Скачать голосовую расшифровку</a></audio><div class="voice-speeds" aria-label="Скорость голосовой расшифровки"><span>Скорость:</span>${[1,1.2,1.5].map(speed=>`<button type="button" class="voice-speed" data-voice-speed="${speed}" aria-pressed="${speed===voiceSpeed}" onclick="setVoiceSpeed(${speed})">${String(speed).replace('.',',')}×</button>`).join('')}</div></section><p>Следующий шаг — <strong>карта принятых решений</strong>. Отметьте от 6 до 10 решений, которыми вы действительно руководствуетесь.</p><p>Сайт покажет возможную травму и то, каким способом ваша иллюзия может её обслуживать.</p></div><button class="telegram" style="border:0;cursor:pointer" type="button" onclick="openMap()">Перейти к карте принятых решений <span>→</span></button><button class="retry" type="button" onclick="restart()">Пройти тест заново</button></article>`;
       }else{
         const q=questions[state.step];
         inner=`<fieldset><legend><strong>${state.step+1}. ${esc(q.q)}</strong></legend><div class="options">${q.a.map((x,i)=>`<button type="button" class="option ${state.answers[state.step]===i?'selected':''}" aria-pressed="${state.answers[state.step]===i}" onclick="selectAnswer(${i})"><span class="letter">${letters[i]}</span><span class="option-text">${esc(x)}</span></button>`).join('')}</div></fieldset><div class="controls">${state.step?'<button class="btn" type="button" onclick="back()">← Назад</button>':''}<button class="btn primary" type="button" onclick="next()" ${state.answers[state.step]===null?'disabled':''}>${state.step===9?'Узнать результат':'Далее'} →</button></div>${state.answers[state.step]===null?'<p class="choose">Выберите один ответ</p>':''}`;
       }
       app.innerHTML=`<div class="topline"><span>${label}</span><span>${String(number).padStart(2,'0')} / 10</span></div><div class="progress" role="progressbar" aria-label="Пройдено вопросов" aria-valuemin="0" aria-valuemax="10" aria-valuenow="${state.complete?10:state.step}"><span style="width:${pct}%"></span></div>${inner}`;
+      applyVoiceSpeed();
       if(state.complete) app.querySelector('h2').focus?.();
     }
     function selectAnswer(i){if(state.complete||!Number.isInteger(i)||i<0||i>3)return;state.answers[state.step]=i;mapState={decisions:[],stage:"selection"};render()}
